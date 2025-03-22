@@ -1,0 +1,45 @@
+{% extends 'refugees/base.html' %}
+
+{% block title %}Housing - Refugee Management System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Housing</h1>
+    {% if user.is_authenticated and user.user_type in 'admin,ngo' %}
+    <a href="{% url 'housing_create' %}" class="btn btn-primary">Add Housing</a>
+    {% endif %}
+</div>
+
+<div class="row">
+    {% if housings %}
+        {% for housing in housings %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">{{ housing.name }}</h5>
+                    <span class="badge {% if housing.available %}bg-success{% else %}bg-danger{% endif %}">
+                        {% if housing.available %}Available{% else %}Full{% endif %}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <p><strong>Location:</strong> {{ housing.location }}</p>
+                    <p><strong>Type:</strong> {{ housing.get_housing_type_display }}</p>
+                    <p><strong>Capacity:</strong> {{ housing.capacity }}</p>
+                </div>
+                <div class="card-footer">
+                    <a href="{% url 'housing_detail' housing.id %}" class="btn btn-info">View Details</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="col-12">
+            <div class="alert alert-info">
+                No housing options available at the moment.
+            </div>
+
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+

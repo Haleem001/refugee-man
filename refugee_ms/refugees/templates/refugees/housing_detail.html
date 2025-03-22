@@ -1,0 +1,33 @@
+{% extends 'refugees/base.html' %}
+
+{% block title %}{{ housing.name }} - Housing Details{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3>{{ housing.name }}</h3>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <span class="badge {% if housing.available %}bg-success{% else %}bg-danger{% endif %} p-2">
+                        {% if housing.available %}Available{% else %}Full{% endif %}
+                    </span>
+                    <span class="badge bg-info p-2">{{ housing.get_housing_type_display }}</span>
+                </div>
+                
+                <p><strong>Location:</strong> {{ housing.location }}</p>
+                <p><strong>Capacity:</strong> {{ housing.capacity }}</p>
+                
+                {% if user.is_authenticated and user.user_type in 'admin,ngo' %}
+                <div class="mt-4">
+                    <a href="{% url 'housing_update' housing.id %}" class="btn btn-primary">Edit</a>
+                    <a href="{% url 'housing_delete' housing.id %}" class="btn btn-danger">Delete</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

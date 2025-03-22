@@ -1,0 +1,38 @@
+{% extends 'refugees/base.html' %}
+
+{% block title %}Job Applications - Refugee Management System{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Job Applications</h1>
+
+<div class="card">
+    <div class="card-body">
+        {% if applications %}
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            {% if user.user_type in 'admin,ngo' %}
+                            <th>Refugee</th>
+                            {% endif %}
+                            <th>Job Title</th>
+                            <th>Employer</th>
+                            <th>Location</th>
+                            <th>Applied On</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for application in applications %}
+                        <tr>
+                            {% if user.user_type in 'admin,ngo' %}
+                            <td>
+                                <a href="{% url 'refugee_detail' application.refugee.id %}">
+                                    {{ application.refugee.user.first_name }} {{ application.refugee.user.last_name }}
+                                </a>
+                            </td>
+                            {% endif %}
+                            <td>{{ application.job.title }}</td>
+                            <td>{{ application.job.employer }}</td>
+                            <td>{{ application.job.location }}</td>
+                            <td>{{ application.applied_at|date:"M

@@ -1,0 +1,59 @@
+{% extends 'refugees/base.html' %}
+
+{% block title %}{{ refugee.user.first_name }} {{ refugee.user.last_name }} - Refugee Profile{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3>Refugee Profile</h3>
+            </div>
+            <div class="card-body">
+                <h4>{{ refugee.user.first_name }} {{ refugee.user.last_name }}</h4>
+                <hr>
+                <p><strong>Username:</strong> {{ refugee.user.username }}</p>
+                <p><strong>Email:</strong> {{ refugee.user.email }}</p>
+                <p><strong>Country of Origin:</strong> {{ refugee.country_of_origin }}</p>
+                <p><strong>Family Size:</strong> {{ refugee.family_size }}</p>
+                <p><strong>Skills:</strong> {{ refugee.skills }}</p>
+                <p><strong>Registered:</strong> {{ refugee.registered_at|date:"F j, Y" }}</p>
+                
+                {% if user == refugee.user or user.user_type == 'admin' %}
+                <div class="mt-3">
+                    <a href="{% url 'refugee_update' refugee.id %}" class="btn btn-primary">Edit Profile</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        {% if user.user_type in 'admin,ngo' %}
+        <div class="card">
+            <div class="card-header">
+                <h4>Job Applications</h4>
+            </div>
+            <div class="card-body">
+                {% with applications=refugee.jobapplication_set.all %}
+                    {% if applications %}
+                        <div class="list-group">
+                            {% for application in applications %}
+                                <a href="{% url 'job_detail' application.job.id %}" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h5 class="mb-1">{{ application.job.title }}</h5>
+                                        <small>{{ application.applied_at|date:"M d, Y" }}</small>
+                                    </div>
+                                    <p class="mb-1">{{ application.job.employer }}</p>
+                                    <small>{{ application.job.location }}</small>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p>No job applications yet.</p>
+                    {% endif %}
+                {% endwith %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,224 @@
+{% extends 'refugees/base.html' %}
+
+{% block title %}Dashboard - Refugee Management System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="mb-4">Dashboard</h1>
+
+    <!-- Overview Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card stats-card">
+                <div class="card-body">
+                    <h5 class="card-title">Total Refugees</h5>
+                    <h2 class="card-text">{{ total_refugees }}</h2>
+                    <p class="text-muted">Registered in the system</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card">
+                <div class="card-body">
+                    <h5 class="card-title">Available Housing</h5>
+                    <h2 class="card-text">{{ available_housing }}</h2>
+                    <p class="text-muted">Units ready for occupancy</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card">
+                <div class="card-body">
+                    <h5 class="card-title">Active Jobs</h5>
+                    <h2 class="card-text">{{ active_jobs }}</h2>
+                    <p class="text-muted">Open positions</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card">
+                <div class="card-body">
+                    <h5 class="card-title">Pending Applications</h5>
+                    <h2 class="card-text">{{ pending_applications }}</h2>
+                    <p class="text-muted">Awaiting review</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <!-- Refugee Demographics -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Refugee Demographics</h5>
+                    <canvas id="demographicsChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Housing Occupancy -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Housing Occupancy</h5>
+                    <canvas id="housingChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <!-- Recent Activities -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Recent Activities</h5>
+                    <div class="list-group">
+                        {% for activity in recent_activities %}
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">{{ activity.title }}</h6>
+                                <small class="text-muted">{{ activity.timestamp|timesince }} ago</small>
+                            </div>
+                            <p class="mb-1">{{ activity.description }}</p>
+                        </div>
+                        {% empty %}
+                        <div class="list-group-item">No recent activities</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upcoming Events -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Upcoming Events</h5>
+                    <div class="list-group">
+                        {% for event in upcoming_events %}
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">{{ event.title }}</h6>
+                                <small class="text-muted">{{ event.date|date:"M d, Y" }}</small>
+                            </div>
+                            <p class="mb-1">{{ event.description }}</p>
+                            <small class="text-muted">{{ event.location }}</small>
+                        </div>
+                        {% empty %}
+                        <div class="list-group-item">No upcoming events</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if user.user_type == 'admin' or user.user_type == 'ngo' %}
+    <div class="row mb-4">
+        <!-- Quick Actions -->
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Quick Actions</h5>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <a href="{% url 'create_refugee_profile' %}" class="btn btn-primary btn-block w-100 mb-2">
+                                <i class="fas fa-user-plus"></i> Register New Refugee
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'housing_create' %}" class="btn btn-success btn-block w-100 mb-2">
+                                <i class="fas fa-home"></i> Add Housing
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'job_create' %}" class="btn btn-info btn-block w-100 mb-2">
+                                <i class="fas fa-briefcase"></i> Post New Job
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'refugee_list' %}" class="btn btn-secondary btn-block w-100 mb-2">
+                                <i class="fas fa-list"></i> View All Refugees
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Parse Django template variables
+    const demographicsLabels = JSON.parse('{{ demographics_labels|safe }}');
+    const demographicsData = JSON.parse('{{ demographics_data|safe }}');
+    const housingLabels = JSON.parse('{{ housing_labels|safe }}');
+    const housingOccupiedData = JSON.parse('{{ housing_occupied_data|safe }}');
+    const housingAvailableData = JSON.parse('{{ housing_available_data|safe }}');
+
+    // Demographics Chart
+    const demographicsCtx = document.getElementById('demographicsChart').getContext('2d');
+    new Chart(demographicsCtx, {
+        type: 'pie',
+        data: {
+            labels: demographicsLabels,
+            datasets: [{
+                data: demographicsData,
+                backgroundColor: [
+                    '#FF6384',
+                    '#36A2EB',
+                    '#FFCE56',
+                    '#4BC0C0',
+                    '#9966FF'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'right'
+                }
+            }
+        }
+    });
+
+    // Housing Chart
+    const housingCtx = document.getElementById('housingChart').getContext('2d');
+    new Chart(housingCtx, {
+        type: 'bar',
+        data: {
+            labels: housingLabels,
+            datasets: [{
+                label: 'Occupied',
+                data: housingOccupiedData,
+                backgroundColor: '#36A2EB'
+            }, {
+                label: 'Available',
+                data: housingAvailableData,
+                backgroundColor: '#4BC0C0'
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                x: {
+                    stacked: true
+                },
+                y: {
+                    stacked: true,
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

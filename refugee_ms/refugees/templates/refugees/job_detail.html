@@ -1,0 +1,87 @@
+{% extends 'refugees/base.html' %}
+
+{% block title %}{{ job.title }} - Job Details{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3>{{ job.title }}</h3>
+            </div>
+            <div class="card-body">
+                <p><strong>Employer:</strong> {{ job.employer }}</p>
+                <p><strong>Location:</strong> {{ job.location }}</p>
+                <p><strong>Posted:</strong> {{ job.posted_at|date:"F j, Y" }}</p>
+                
+                <h5 class="mt-4">Description</h5>
+                <p>{{ job.description|linebreaks }}</p>
+                
+                {% if user.is_authenticated %}
+                    {% if user.user_type == 'refugee' %}
+                        {% if user.refugee %}
+                            {% with applied=user.refugee.jobapplication_set.filter.exists %}
+                                {% if applied %}
+                                <div class="alert alert-success">
+                                    You have already applied for this job.
+                                </div>
+                                {% else %}
+                                <a href="{% url 'apply_for_job' job.id %}" class="btn btn-success">Apply for this Job</a>
+                                {% endif %}
+                            {% endwith %}
+                        {% else %}
+                            <div class="alert alert-warning">
+                                You need to complete your refugee profile before applying for jobs.
+                                <a href="{% url 'create_refugee_profile' %}">Create Profile</a>
+                            </div>
+                        {% endif %}
+                    {% elif user.user_type in 'admin,ngo' %}
+                        <div class="mt-4">
+                            <a href="{% url 'job_update' job.id %}" class="btn btn-primary">Edit</a>
+                            <a href="{% url 'job_delete' job.id %}" class="btn btn-danger">Delete</a>
+                        </div>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+        
+        {% if user.user_type in 'admin,ngo' %}
+        <div class="card">
+            <div class="card-header">
+                <h4>Applications</h4>
+            </div>
+            <div class="card-body">
+                {% with applications=job.jobapplication_set.all %}
+                    {% if applications %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Refugee</th>
+                                        <th>Applied On</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for application in applications %}
+                                    <tr>
+                                        <td>{{ application.refugee.user.first_name }} {{ application.refugee.user.last_name }}</td>
+                                        <td>{{ application.applied_at|date:"M d, Y" }}</td>
+                                        <td>
+                                            <a href="{% url 'refugee_detail' application.refugee.id %}" class="btn btn-sm btn-info">View Profile</a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p>No applications received yet.</p>
+                    {% endif %}
+                {% endwith %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
