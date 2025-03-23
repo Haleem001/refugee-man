@@ -3,11 +3,11 @@ from django.urls import path, include
 from django.contrib.auth import views as auth_views
 from django.views.generic import RedirectView
 from django.contrib.auth.views import LogoutView
-from refugees.views import logout_view
+from refugees.views import logout_view, landing_page
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', RedirectView.as_view(pattern_name='dashboard'), name='home'),
+    path('', landing_page, name='home'),
     path('', include('refugees.urls')),
     
     # Authentication URLs

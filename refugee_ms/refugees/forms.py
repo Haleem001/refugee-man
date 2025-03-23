@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from .models import CustomUser, Refugee, Housing, Job, JobApplication
+from .models import CustomUser, Refugee, Housing, Job, JobApplication, HousingApplication, NGO
 
 class CustomUserCreationForm(UserCreationForm):
     email = forms.EmailField(required=True)
@@ -46,7 +46,8 @@ class RefugeeForm(forms.ModelForm):
             'skills',
             'medical_conditions',
             'emergency_contact',
-            'documents'
+            'documents',
+            'status'
         ]
         widgets = {
             'date_of_birth': forms.DateInput(attrs={
@@ -87,7 +88,8 @@ class RefugeeForm(forms.ModelForm):
             }),
             'documents': forms.FileInput(attrs={
                 'class': 'form-control'
-            })
+            }),
+            'status': forms.Select(attrs={'class': 'form-select'})
         }
 
 class HousingForm(forms.ModelForm):
@@ -113,7 +115,7 @@ class HousingForm(forms.ModelForm):
             'description': forms.Textarea(attrs={
                 'class': 'form-control',
                 'placeholder': 'Detailed description of the housing',
-                'rows': 3
+                'rows': 4
             }),
             'location': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -122,7 +124,7 @@ class HousingForm(forms.ModelForm):
             'address': forms.Textarea(attrs={
                 'class': 'form-control',
                 'placeholder': 'Full address',
-                'rows': 2
+                'rows': 3
             }),
             'capacity': forms.NumberInput(attrs={
                 'class': 'form-control',
@@ -190,7 +192,7 @@ class JobForm(forms.ModelForm):
             'requirements': forms.Textarea(attrs={
                 'class': 'form-control',
                 'placeholder': 'Job requirements and qualifications',
-                'rows': 3
+                'rows': 4
             }),
             'benefits': forms.Textarea(attrs={
                 'class': 'form-control',
@@ -214,9 +216,76 @@ class JobApplicationForm(forms.ModelForm):
             'cover_letter': forms.Textarea(attrs={
                 'class': 'form-control',
                 'placeholder': 'Write your cover letter here',
-                'rows': 5
+                'rows': 6
             }),
             'resume': forms.FileInput(attrs={
                 'class': 'form-control'
+            })
+        }
+
+class HousingApplicationForm(forms.ModelForm):
+    class Meta:
+        model = HousingApplication
+        fields = ['notes']
+        widgets = {
+            'notes': forms.Textarea(attrs={
+                'rows': 4,
+                'placeholder': 'Please provide any additional information that might help with your application...'
+            }),
+        }
+
+class NGOProfileForm(forms.ModelForm):
+    class Meta:
+        model = NGO
+        fields = [
+            'organization_name',
+            'registration_number',
+            'description',
+            'website',
+            'contact_email',
+            'contact_phone',
+            'address',
+            'areas_of_focus',
+            'established_date'
+        ]
+        widgets = {
+            'organization_name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Organization name'
+            }),
+            'registration_number': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Registration number'
+            }),
+            'description': forms.Textarea(attrs={
+                'class': 'form-control',
+                'placeholder': 'Brief description of your organization',
+                'rows': 4
+            }),
+            'website': forms.URLInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'https://example.org'
+            }),
+            'contact_email': forms.EmailInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'contact@organization.org'
+            }),
+            'contact_phone': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Phone number'
+            }),
+            'address': forms.Textarea(attrs={
+                'class': 'form-control',
+                'placeholder': 'Organization address',
+                'rows': 3
+            }),
+            'areas_of_focus': forms.Textarea(attrs={
+                'class': 'form-control',
+                'placeholder': 'List your main areas of focus',
+                'rows': 4
+            }),
+            'established_date': forms.DateInput(attrs={
+                'class': 'form-control',
+                'type': 'date'
             })
         }

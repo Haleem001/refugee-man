@@ -3,36 +3,65 @@
 {% block title %}Job Applications - Refugee Management System{% endblock %}
 
 {% block content %}
-<h1 class="mb-4">Job Applications</h1>
-
-<div class="card">
-    <div class="card-body">
-        {% if applications %}
-            <div class="table-responsive">
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            {% if user.user_type in 'admin,ngo' %}
-                            <th>Refugee</th>
-                            {% endif %}
-                            <th>Job Title</th>
-                            <th>Employer</th>
-                            <th>Location</th>
-                            <th>Applied On</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for application in applications %}
-                        <tr>
-                            {% if user.user_type in 'admin,ngo' %}
-                            <td>
-                                <a href="{% url 'refugee_detail' application.refugee.id %}">
-                                    {{ application.refugee.user.first_name }} {{ application.refugee.user.last_name }}
-                                </a>
-                            </td>
-                            {% endif %}
-                            <td>{{ application.job.title }}</td>
-                            <td>{{ application.job.employer }}</td>
-                            <td>{{ application.job.location }}</td>
-                            <td>{{ application.applied_at|date:"M
+<div class="container mt-4">
+    <h2>Job Applications</h2>
+    
+    {% if applications %}
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Applicant</th>
+                    <th>Job Title</th>
+                    <th>Employer</th>
+                    <th>Location</th>
+                    <th>Application Date</th>
+                    <th>Status</th>
+                    {% if user_type in 'admin,ngo' %}
+                    <th>Actions</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for application in applications %}
+                <tr>
+                    <td>{{ application.refugee.user.get_full_name }}</td>
+                    <td>{{ application.job.title }}</td>
+                    <td>{{ application.job.employer }}</td>
+                    <td>{{ application.job.location }}</td>
+                    <td>{{ application.applied_at|date:"M d, Y" }}</td>
+                    <td>
+                        <span class="badge {% if application.status == 'pending' %}bg-warning
+                                          {% elif application.status == 'approved' %}bg-success
+                                          {% else %}bg-danger{% endif %}">
+                            {{ application.status|title }}
+                        </span>
+                    </td>
+                    {% if user_type in 'admin,ngo' and application.status == 'pending' %}
+                    <td>
+                        <div class="btn-group" role="group">
+                            <a href="{% url 'update_job_application_status' application.pk 'approved' %}" 
+                               class="btn btn-success btn-sm"
+                               onclick="return confirm('Are you sure you want to approve this application?')">
+                                Approve
+                            </a>
+                            <a href="{% url 'update_job_application_status' application.pk 'rejected' %}" 
+                               class="btn btn-danger btn-sm"
+                               onclick="return confirm('Are you sure you want to reject this application?')">
+                                Reject
+                            </a>
+                        </div>
+                    </td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        No job applications found.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

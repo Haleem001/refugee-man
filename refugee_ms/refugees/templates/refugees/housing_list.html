@@ -3,42 +3,67 @@
 {% block title %}Housing - Refugee Management System{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>Housing</h1>
-    {% if user.is_authenticated and user.user_type in 'admin,ngo' %}
-    <a href="{% url 'housing_create' %}" class="btn btn-primary">Add Housing</a>
-    {% endif %}
-</div>
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Housing Listings</h1>
+        <div>
+            {% if user_type in 'admin,ngo' %}
+            <a href="{% url 'housing_create' %}" class="btn btn-primary me-2">Add Housing</a>
+            {% endif %}
+            {% if user_type in 'admin,ngo' %}
+            <a href="{% url 'housing_application_list' %}" class="btn btn-info">View Applications</a>
+            {% endif %}
+        </div>
+    </div>
 
-<div class="row">
     {% if housings %}
+    <div class="row">
         {% for housing in housings %}
-        <div class="col-md-4 mb-4">
+        <div class="col-md-6 mb-4">
             <div class="card h-100">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">{{ housing.name }}</h5>
-                    <span class="badge {% if housing.available %}bg-success{% else %}bg-danger{% endif %}">
-                        {% if housing.available %}Available{% else %}Full{% endif %}
+                    <span class="badge {% if housing.status == 'available' %}bg-success{% elif housing.status == 'occupied' %}bg-danger{% else %}bg-secondary{% endif %}">
+                        {{ housing.get_status_display }}
                     </span>
                 </div>
                 <div class="card-body">
                     <p><strong>Location:</strong> {{ housing.location }}</p>
                     <p><strong>Type:</strong> {{ housing.get_housing_type_display }}</p>
-                    <p><strong>Capacity:</strong> {{ housing.capacity }}</p>
+                    <p><strong>Capacity:</strong> {{ housing.capacity }} people</p>
+                    <p class="text-truncate"><strong>Description:</strong> {{ housing.description|truncatewords:20 }}</p>
+                    {% if user_type in 'admin,ngo' %}
+                    <p><strong>Posted by:</strong> {{ housing.ngo.organization_name }}</p>
+                    {% endif %}
                 </div>
                 <div class="card-footer">
-                    <a href="{% url 'housing_detail' housing.id %}" class="btn btn-info">View Details</a>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a href="{% url 'housing_detail' housing.pk %}" class="btn btn-info btn-sm">View Details</a>
+                        <div>
+                            {% if user_type == 'refugee' and housing.status == 'available' %}
+                            <a href="{% url 'apply_for_housing' housing.pk %}" class="btn btn-success btn-sm">Apply</a>
+                            {% endif %}
+                            {% if user_type in 'admin,ngo' %}
+                            <a href="{% url 'housing_update' housing.pk %}" class="btn btn-warning btn-sm">Edit</a>
+                            <a href="{% url 'housing_delete' housing.pk %}" class="btn btn-danger btn-sm">Delete</a>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
         {% endfor %}
+    </div>
     {% else %}
-        <div class="col-12">
-            <div class="alert alert-info">
-                No housing options available at the moment.
-            </div>
-
-        </div>
+    <div class="alert alert-info">
+        {% if user_type == 'refugee' %}
+            No available housing at the moment.
+        {% elif user_type == 'ngo' %}
+            You haven't posted any housing yet. Click "Add Housing" to create your first listing.
+        {% else %}
+            No housing listings found in the system.
+        {% endif %}
+    </div>
     {% endif %}
 </div>
 {% endblock %}

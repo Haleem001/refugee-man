@@ -1,156 +1,479 @@
 {% extends 'refugees/base.html' %}
+{% load static %}
 
 {% block title %}Dashboard - Refugee Management System{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <h1 class="mb-4">Dashboard</h1>
+<div class="container mt-4">
+    {% if user_type == 'refugee' and not has_profile %}
+        <div class="alert alert-warning">
+            <h4>Welcome! Please create your refugee profile to get started.</h4>
+            <p>Your profile helps us better assist you with housing and job opportunities.</p>
+            <a href="{% url 'create_refugee_profile' %}" class="btn btn-primary">Create Refugee Profile</a>
+        </div>
+    {% elif user_type == 'ngo' and not has_profile %}
+        <div class="alert alert-warning">
+            <h4>Welcome! Please create your NGO profile to get started.</h4>
+            <p>Your profile helps us connect you with refugees and manage your listings.</p>
+            <a href="{% url 'create_ngo_profile' %}" class="btn btn-primary">Create NGO Profile</a>
+        </div>
+    {% else %}
+        <!-- Welcome Section -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h2>Welcome, {{ request.user.get_full_name|default:request.user.username }}!</h2>
+                {% if user_type == 'refugee' and refugee %}
+                    <p class="text-muted">Refugee ID: {{ refugee.id }}</p>
+                {% elif user_type == 'ngo' and ngo %}
+                    <p class="text-muted">{{ ngo.organization_name }}</p>
+                {% elif user_type == 'admin' %}
+                    <p class="text-muted">Administrator</p>
+                {% endif %}
+            </div>
+        </div>
 
-    <!-- Overview Statistics -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card stats-card">
+        <!-- Statistics Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card bg-primary text-white">
+                    <div class="card-body">
+                        <h5 class="card-title">Total Refugees</h5>
+                        <h2 class="card-text">{{ total_refugees }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-success text-white">
                 <div class="card-body">
-                    <h5 class="card-title">Total Refugees</h5>
-                    <h2 class="card-text">{{ total_refugees }}</h2>
-                    <p class="text-muted">Registered in the system</p>
+                        <h5 class="card-title">Available Housing</h5>
+                        <h2 class="card-text">{{ available_housing_count }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-info text-white">
+                    <div class="card-body">
+                        <h5 class="card-title">Active Jobs</h5>
+                        <h2 class="card-text">{{ active_jobs }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-warning text-white">
+                <div class="card-body">
+                        <h5 class="card-title">Pending Applications</h5>
+                        <h2 class="card-text">{{ pending_applications }}</h2>
+                        </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card stats-card">
+        
+        <!-- Role-Specific Content -->
+        {% if user_type == 'refugee' and refugee %}
+            <!-- Refugee Dashboard -->
+            <div class="row mb-4">
+                <!-- Personal Information -->
+        <div class="col-md-4">
+                    <div class="card">
+                <div class="card-header">
+                            <h5 class="card-title mb-0">Personal Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Name:</strong> {{ refugee.user.get_full_name }}</p>
+                            <p><strong>Gender:</strong> {{ refugee.get_gender_display }}</p>
+                            <p><strong>Age:</strong> {{ refugee.age }}</p>
+                            <p><strong>Country of Origin:</strong> {{ refugee.country_of_origin }}</p>
+                            <p><strong>Languages:</strong> {{ refugee.languages }}</p>
+                            <a href="{% url 'refugee_update' refugee.pk %}" class="btn btn-sm btn-primary">Edit Profile</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Applications -->
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Recent Applications</h5>
+                </div>
                 <div class="card-body">
-                    <h5 class="card-title">Available Housing</h5>
-                    <h2 class="card-text">{{ available_housing }}</h2>
-                    <p class="text-muted">Units ready for occupancy</p>
+                            <h6>Housing Applications</h6>
+                            {% if housing_applications %}
+                                <div class="list-group mb-3">
+                                    {% for app in housing_applications %}
+                                        <div class="list-group-item">
+                                            <h6 class="mb-1">{{ app.housing.name }}</h6>
+                                            <p class="mb-1">Status: {{ app.get_status_display }}</p>
+                                            <small>Applied: {{ app.application_date|date:"M d, Y" }}</small>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <p>No housing applications yet.</p>
+                            {% endif %}
+
+                            <h6>Job Applications</h6>
+                            {% if job_applications %}
+                    <div class="list-group">
+                                    {% for app in job_applications %}
+                                        <div class="list-group-item">
+                                            <h6 class="mb-1">{{ app.job.title }}</h6>
+                                            <p class="mb-1">Status: {{ app.get_status_display }}</p>
+                                            <small>Applied: {{ app.applied_at|date:"M d, Y" }}</small>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <p>No job applications yet.</p>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card stats-card">
-                <div class="card-body">
-                    <h5 class="card-title">Active Jobs</h5>
-                    <h2 class="card-text">{{ active_jobs }}</h2>
-                    <p class="text-muted">Open positions</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card stats-card">
-                <div class="card-body">
-                    <h5 class="card-title">Pending Applications</h5>
-                    <h2 class="card-text">{{ pending_applications }}</h2>
-                    <p class="text-muted">Awaiting review</p>
-                </div>
+
+            <!-- Available Opportunities -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Available Housing</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if available_housing %}
+                                <div class="list-group">
+                                    {% for housing in available_housing %}
+                                        <a href="{% url 'housing_detail' housing.pk %}" class="list-group-item list-group-item-action">
+                                            <h6 class="mb-1">{{ housing.name }}</h6>
+                                            <p class="mb-1">{{ housing.location }}</p>
+                                            <small>Type: {{ housing.get_housing_type_display }}</small>
+                                        </a>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <p>No available housing at the moment.</p>
+                            {% endif %}
             </div>
         </div>
     </div>
 
-    <div class="row mb-4">
-        <!-- Refugee Demographics -->
-        <div class="col-md-6">
-            <div class="card">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Available Jobs</h5>
+                        </div>
                 <div class="card-body">
-                    <h5 class="card-title">Refugee Demographics</h5>
-                    <canvas id="demographicsChart"></canvas>
+                            {% if available_jobs %}
+                                <div class="list-group">
+                                    {% for job in available_jobs %}
+                                        <a href="{% url 'job_detail' job.pk %}" class="list-group-item list-group-item-action">
+                                            <h6 class="mb-1">{{ job.title }}</h6>
+                                            <p class="mb-1">{{ job.ngo.organization_name }}</p>
+                                            <small>Deadline: {{ job.deadline|date:"M d, Y" }}</small>
+                                        </a>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <p>No available jobs at the moment.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        {% elif user_type == 'ngo' and ngo %}
+            <!-- NGO Dashboard -->
+            <div class="row mb-4">
+                <!-- Organization Information -->
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Organization Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Name:</strong> {{ ngo.organization_name }}</p>
+                            <p><strong>Type:</strong> {{ ngo.organization_type }}</p>
+                            <p><strong>Location:</strong> {{ ngo.location }}</p>
+                            <p><strong>Contact:</strong> {{ ngo.contact_number }}</p>
+                            <a href="{% url 'ngo_update' ngo.pk %}" class="btn btn-sm btn-primary">Edit Profile</a>
                 </div>
             </div>
         </div>
-
-        <!-- Housing Occupancy -->
-        <div class="col-md-6">
-            <div class="card">
+        
+                <!-- Recent Applications -->
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Recent Applications</h5>
+                        </div>
                 <div class="card-body">
-                    <h5 class="card-title">Housing Occupancy</h5>
-                    <canvas id="housingChart"></canvas>
+                            <h6>Housing Applications</h6>
+                            {% if housing_applications %}
+                                <div class="list-group mb-3">
+                                    {% for app in housing_applications %}
+                                        <div class="list-group-item">
+                                            <h6 class="mb-1">{{ app.housing.name }}</h6>
+                                            <p class="mb-1">Applicant: {{ app.refugee.user.get_full_name }}</p>
+                                            <p class="mb-1">Status: {{ app.get_status_display }}</p>
+                                            <small>Applied: {{ app.application_date|date:"M d, Y" }}</small>
+                                            {% if app.status == 'pending' %}
+                                                <div class="mt-2">
+                                                    <a href="{% url 'update_housing_application_status' app.pk 'approved' %}" class="btn btn-sm btn-success">Approve</a>
+                                                    <a href="{% url 'update_housing_application_status' app.pk 'rejected' %}" class="btn btn-sm btn-danger">Reject</a>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <p>No housing applications to review.</p>
+                            {% endif %}
+
+                            <h6>Job Applications</h6>
+                            {% if job_applications %}
+                                <div class="list-group">
+                                    {% for app in job_applications %}
+                                        <div class="list-group-item">
+                                            <h6 class="mb-1">{{ app.job.title }}</h6>
+                                            <p class="mb-1">Applicant: {{ app.refugee.user.get_full_name }}</p>
+                                            <p class="mb-1">Status: {{ app.get_status_display }}</p>
+                                            <small>Applied: {{ app.applied_at|date:"M d, Y" }}</small>
+                                            {% if app.status == 'pending' %}
+                                                <div class="mt-2">
+                                                    <a href="{% url 'update_job_application_status' app.pk 'approved' %}" class="btn btn-sm btn-success">Approve</a>
+                                                    <a href="{% url 'update_job_application_status' app.pk 'rejected' %}" class="btn btn-sm btn-danger">Reject</a>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <p>No job applications to review.</p>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
+            </div>
+
+            <!-- Listings Management -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0">Housing Listings</h5>
+                            <a href="{% url 'housing_create' %}" class="btn btn-sm btn-primary">Add New</a>
+                        </div>
+                        <div class="card-body">
+                            {% if housing_listings %}
+                                <div class="list-group">
+                                    {% for housing in housing_listings %}
+                                        <a href="{% url 'housing_detail' housing.pk %}" class="list-group-item list-group-item-action">
+                                            <h6 class="mb-1">{{ housing.name }}</h6>
+                                            <p class="mb-1">Status: {{ housing.get_status_display }}</p>
+                                            <small>Type: {{ housing.get_housing_type_display }}</small>
+                                        </a>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <p>No housing listings yet.</p>
+                            {% endif %}
+                </div>
+            </div>
+        </div>
+        
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0">Job Listings</h5>
+                            <a href="{% url 'job_create' %}" class="btn btn-sm btn-primary">Add New</a>
+                        </div>
+                <div class="card-body">
+                            {% if job_listings %}
+                                <div class="list-group">
+                                    {% for job in job_listings %}
+                                        <a href="{% url 'job_detail' job.pk %}" class="list-group-item list-group-item-action">
+                                            <h6 class="mb-1">{{ job.title }}</h6>
+                                            <p class="mb-1">Status: {{ job.is_active|yesno:"Active,Inactive" }}</p>
+                                            <small>Deadline: {{ job.deadline|date:"M d, Y" }}</small>
+                                        </a>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <p>No job listings yet.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        {% elif user_type == 'admin' %}
+            <!-- Admin Dashboard -->
+            <div class="row mb-4">
+                <!-- System Statistics -->
+                <div class="col-md-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">Total NGOs</h5>
+                            <h2 class="card-text">{{ total_ngos }}</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Housing</h5>
+                            <h2 class="card-text">{{ total_housing }}</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-info text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Jobs</h5>
+                            <h2 class="card-text">{{ total_jobs }}</h2>
+        </div>
+    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-warning text-white">
+                <div class="card-body">
+                            <h5 class="card-title">Pending Applications</h5>
+                            <h2 class="card-text">{{ pending_applications }}</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Applications -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Recent Housing Applications</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if recent_applications %}
+                                <div class="list-group">
+                                    {% for app in recent_applications %}
+                                        <div class="list-group-item">
+                                            <h6 class="mb-1">{{ app.housing.name }}</h6>
+                                            <p class="mb-1">Applicant: {{ app.refugee.user.get_full_name }}</p>
+                                            <p class="mb-1">Status: {{ app.get_status_display }}</p>
+                                            <small>Applied: {{ app.application_date|date:"M d, Y" }}</small>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <p>No recent housing applications.</p>
+                            {% endif %}
             </div>
         </div>
     </div>
 
-    <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Recent Job Applications</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if recent_job_applications %}
+                                <div class="list-group">
+                                    {% for app in recent_job_applications %}
+                                        <div class="list-group-item">
+                                            <h6 class="mb-1">{{ app.job.title }}</h6>
+                                            <p class="mb-1">Applicant: {{ app.refugee.user.get_full_name }}</p>
+                                            <p class="mb-1">Status: {{ app.get_status_display }}</p>
+                                            <small>Applied: {{ app.applied_at|date:"M d, Y" }}</small>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <p>No recent job applications.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <a href="{% url 'create_refugee_profile' %}" class="btn btn-primary btn-block">Register New Refugee</a>
+                                </div>
+                                <div class="col-md-3">
+                                    <a href="{% url 'housing_create' %}" class="btn btn-success btn-block">Add Housing</a>
+                                </div>
+                                <div class="col-md-3">
+                                    <a href="{% url 'job_create' %}" class="btn btn-info btn-block">Post New Job</a>
+                                </div>
+                                <div class="col-md-3">
+                                    <a href="{% url 'refugee_list' %}" class="btn btn-warning btn-block">View All Refugees</a>
+                                </div>
+                                    </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+                    {% endif %}
+
+        <!-- Demographics Chart -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Refugee Demographics</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="demographicsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Housing Chart -->
+            <div class="col-md-6">
+            <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Housing Distribution</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="housingChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Recent Activities -->
-        <div class="col-md-6">
-            <div class="card">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Recent Activities</h5>
+                </div>
                 <div class="card-body">
-                    <h5 class="card-title">Recent Activities</h5>
-                    <div class="list-group">
-                        {% for activity in recent_activities %}
-                        <div class="list-group-item">
-                            <div class="d-flex w-100 justify-content-between">
-                                <h6 class="mb-1">{{ activity.title }}</h6>
-                                <small class="text-muted">{{ activity.timestamp|timesince }} ago</small>
-                            </div>
-                            <p class="mb-1">{{ activity.description }}</p>
+                        {% if recent_activities %}
+                        <div class="list-group">
+                                {% for activity in recent_activities %}
+                                    <div class="list-group-item">
+                                        <h6 class="mb-1">{{ activity.title }}</h6>
+                                        <p class="mb-1">{{ activity.description }}</p>
+                                        <small>{{ activity.timestamp|date:"M d, Y H:i" }}</small>
+                                    </div>
+                            {% endfor %}
                         </div>
-                        {% empty %}
-                        <div class="list-group-item">No recent activities</div>
-                        {% endfor %}
+                    {% else %}
+                            <p>No recent activities.</p>
+                    {% endif %}
                     </div>
                 </div>
             </div>
         </div>
-
-        <!-- Upcoming Events -->
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Upcoming Events</h5>
-                    <div class="list-group">
-                        {% for event in upcoming_events %}
-                        <div class="list-group-item">
-                            <div class="d-flex w-100 justify-content-between">
-                                <h6 class="mb-1">{{ event.title }}</h6>
-                                <small class="text-muted">{{ event.date|date:"M d, Y" }}</small>
-                            </div>
-                            <p class="mb-1">{{ event.description }}</p>
-                            <small class="text-muted">{{ event.location }}</small>
-                        </div>
-                        {% empty %}
-                        <div class="list-group-item">No upcoming events</div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    {% if user.user_type == 'admin' or user.user_type == 'ngo' %}
-    <div class="row mb-4">
-        <!-- Quick Actions -->
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Quick Actions</h5>
-                    <div class="row">
-                        <div class="col-md-3">
-                            <a href="{% url 'create_refugee_profile' %}" class="btn btn-primary btn-block w-100 mb-2">
-                                <i class="fas fa-user-plus"></i> Register New Refugee
-                            </a>
-                        </div>
-                        <div class="col-md-3">
-                            <a href="{% url 'housing_create' %}" class="btn btn-success btn-block w-100 mb-2">
-                                <i class="fas fa-home"></i> Add Housing
-                            </a>
-                        </div>
-                        <div class="col-md-3">
-                            <a href="{% url 'job_create' %}" class="btn btn-info btn-block w-100 mb-2">
-                                <i class="fas fa-briefcase"></i> Post New Job
-                            </a>
-                        </div>
-                        <div class="col-md-3">
-                            <a href="{% url 'refugee_list' %}" class="btn btn-secondary btn-block w-100 mb-2">
-                                <i class="fas fa-list"></i> View All Refugees
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
     {% endif %}
-</div>
-
+    </div>
 {% endblock %}
 
 {% block extra_js %}
@@ -164,61 +487,55 @@ document.addEventListener('DOMContentLoaded', function() {
     const housingAvailableData = JSON.parse('{{ housing_available_data|safe }}');
 
     // Demographics Chart
-    const demographicsCtx = document.getElementById('demographicsChart').getContext('2d');
-    new Chart(demographicsCtx, {
-        type: 'pie',
-        data: {
-            labels: demographicsLabels,
-            datasets: [{
-                data: demographicsData,
-                backgroundColor: [
-                    '#FF6384',
-                    '#36A2EB',
-                    '#FFCE56',
-                    '#4BC0C0',
-                    '#9966FF'
-                ]
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    position: 'right'
+    const demographicsCtx = document.getElementById('demographicsChart');
+    if (demographicsCtx) {
+        new Chart(demographicsCtx.getContext('2d'), {
+            type: 'pie',
+            data: {
+                labels: demographicsLabels,
+                datasets: [{
+                    data: demographicsData,
+                    backgroundColor: ['#007bff', '#dc3545', '#28a745']
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
                 }
             }
-        }
-    });
+        });
+    }
 
     // Housing Chart
-    const housingCtx = document.getElementById('housingChart').getContext('2d');
-    new Chart(housingCtx, {
-        type: 'bar',
-        data: {
-            labels: housingLabels,
-            datasets: [{
-                label: 'Occupied',
-                data: housingOccupiedData,
-                backgroundColor: '#36A2EB'
-            }, {
-                label: 'Available',
-                data: housingAvailableData,
-                backgroundColor: '#4BC0C0'
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                x: {
-                    stacked: true
-                },
-                y: {
-                    stacked: true,
-                    beginAtZero: true
+    const housingCtx = document.getElementById('housingChart');
+    if (housingCtx) {
+        new Chart(housingCtx.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: housingLabels,
+                datasets: [{
+                    label: 'Occupied',
+                    data: housingOccupiedData,
+                    backgroundColor: '#dc3545'
+                }, {
+                    label: 'Available',
+                    data: housingAvailableData,
+                    backgroundColor: '#28a745'
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
                 }
             }
-        }
-    });
+        });
+    }
 });
 </script>
 {% endblock %}

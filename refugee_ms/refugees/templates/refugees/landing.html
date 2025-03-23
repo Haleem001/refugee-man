@@ -1,0 +1,117 @@
+{% extends 'refugees/base.html' %}
+
+{% block title %}Welcome - Refugee Management System{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row align-items-center">
+        <div class="col-md-6">
+            <h1 class="display-4 mb-4">Welcome to Refugee Management System</h1>
+            <p class="lead mb-4">A comprehensive platform designed to help refugees find housing, employment, and support services in their new community.</p>
+            
+            {% if user.is_authenticated %}
+                <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+                    <a href="{% url 'dashboard' %}" class="btn btn-primary btn-lg px-4 me-md-2">Go to Dashboard</a>
+                    <a href="{% url 'logout' %}" class="btn btn-outline-secondary btn-lg px-4">Logout</a>
+                </div>
+            {% else %}
+                <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+                    <a href="{% url 'login' %}" class="btn btn-primary btn-lg px-4 me-md-2">Login</a>
+                    <a href="{% url 'register' %}" class="btn btn-outline-secondary btn-lg px-4">Register</a>
+                </div>
+            {% endif %}
+        </div>
+        <div class="col-md-6">
+            <img src="https://source.unsplash.com/random/800x600/?refugee,help" alt="Refugee Support" class="img-fluid rounded shadow">
+        </div>
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-home fa-3x mb-3 text-primary"></i>
+                    <h3 class="card-title">Housing Support</h3>
+                    <p class="card-text">Find safe and suitable housing options in your new community.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-briefcase fa-3x mb-3 text-primary"></i>
+                    <h3 class="card-title">Employment</h3>
+                    <p class="card-text">Access job opportunities and career development resources.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-hands-helping fa-3x mb-3 text-primary"></i>
+                    <h3 class="card-title">Support Services</h3>
+                    <p class="card-text">Connect with NGOs and support organizations in your area.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-12 text-center">
+            <h2 class="mb-4">How It Works</h2>
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="text-center">
+                        <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                            <span class="h4 mb-0">1</span>
+                        </div>
+                        <h5>Register</h5>
+                        <p>Create your account as a refugee or support organization</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="text-center">
+                        <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                            <span class="h4 mb-0">2</span>
+                        </div>
+                        <h5>Complete Profile</h5>
+                        <p>Provide your information and requirements</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="text-center">
+                        <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                            <span class="h4 mb-0">3</span>
+                        </div>
+                        <h5>Browse Options</h5>
+                        <p>Search for housing and job opportunities</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="text-center">
+                        <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                            <span class="h4 mb-0">4</span>
+                        </div>
+                        <h5>Apply</h5>
+                        <p>Submit applications for housing and jobs</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        transition: transform 0.2s;
+        border: none;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .card:hover {
+        transform: translateY(-5px);
+    }
+    .rounded-circle {
+        font-weight: bold;
+    }
+</style>
+{% endblock %} 

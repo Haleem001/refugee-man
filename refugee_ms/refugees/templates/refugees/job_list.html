@@ -3,42 +3,72 @@
 {% block title %}Jobs - Refugee Management System{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>Jobs</h1>
-    {% if user.is_authenticated and user.user_type in 'admin,ngo' %}
-    <a href="{% url 'job_create' %}" class="btn btn-primary">Post Job</a>
-    {% endif %}
-</div>
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Job Listings</h1>
+        <div>
+            {% if user_type in 'admin,ngo' %}
+            <a href="{% url 'job_create' %}" class="btn btn-primary me-2">Post Job</a>
+            {% endif %}
+            {% if user_type in 'admin,ngo' %}
+            <a href="{% url 'job_application_list' %}" class="btn btn-info">View Applications</a>
+            {% endif %}
+        </div>
+    </div>
 
-<div class="row">
     {% if jobs %}
+    <div class="row">
         {% for job in jobs %}
         <div class="col-md-6 mb-4">
             <div class="card h-100">
-                <div class="card-header">
+                <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">{{ job.title }}</h5>
+                    <span class="badge {% if job.is_active %}bg-success{% else %}bg-danger{% endif %}">
+                        {% if job.is_active %}Active{% else %}Closed{% endif %}
+                    </span>
                 </div>
                 <div class="card-body">
                     <p><strong>Employer:</strong> {{ job.employer }}</p>
                     <p><strong>Location:</strong> {{ job.location }}</p>
-                    <p><strong>Posted:</strong> {{ job.posted_at|date:"F j, Y" }}</p>
-                    <p class="text-truncate">{{ job.description|truncatewords:20 }}</p>
-                </div>
-                <div class="card-footer d-flex justify-content-between">
-                    <a href="{% url 'job_detail' job.id %}" class="btn btn-info">View Details</a>
-                    {% if user.is_authenticated and user.user_type == 'refugee' %}
-                    <a href="{% url 'apply_for_job' job.id %}" class="btn btn-success">Apply</a>
+                    <p><strong>Type:</strong> {{ job.get_job_type_display }}</p>
+                    {% if job.salary_range %}
+                    <p><strong>Salary Range:</strong> {{ job.salary_range }}</p>
                     {% endif %}
+                    <p><strong>Posted:</strong> {{ job.posted_at|date:"F j, Y" }}</p>
+                    <p><strong>Deadline:</strong> {{ job.deadline|date:"F j, Y" }}</p>
+                    <p class="text-truncate"><strong>Description:</strong> {{ job.description|truncatewords:20 }}</p>
+                    {% if user_type in 'admin,ngo' %}
+                    <p><strong>Posted by:</strong> {{ job.ngo.organization_name }}</p>
+                    {% endif %}
+                </div>
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a href="{% url 'job_detail' job.pk %}" class="btn btn-info btn-sm">View Details</a>
+                        <div>
+                            {% if user_type == 'refugee' and job.is_active %}
+                            <a href="{% url 'apply_for_job' job.pk %}" class="btn btn-success btn-sm">Apply</a>
+                            {% endif %}
+                            {% if user_type in 'admin,ngo' %}
+                            <a href="{% url 'job_update' job.pk %}" class="btn btn-warning btn-sm">Edit</a>
+                            <a href="{% url 'job_delete' job.pk %}" class="btn btn-danger btn-sm">Delete</a>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
         {% endfor %}
+    </div>
     {% else %}
-        <div class="col-12">
-            <div class="alert alert-info">
-                No job postings available at the moment.
-            </div>
-        </div>
+    <div class="alert alert-info">
+        {% if user_type == 'refugee' %}
+            No active job postings available at the moment.
+        {% elif user_type == 'ngo' %}
+            You haven't posted any jobs yet. Click "Post Job" to create your first listing.
+        {% else %}
+            No job listings found in the system.
+        {% endif %}
+    </div>
     {% endif %}
 </div>
 {% endblock %}

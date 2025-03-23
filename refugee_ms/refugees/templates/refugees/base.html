@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Refugee Management System{% endblock %}</title>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
@@ -36,6 +38,15 @@
         .stats-card {
             border-left: 4px solid #3498db;
         }
+        .user-type-badge {
+            font-size: 0.8rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            margin-left: 0.5rem;
+        }
+        .refugee-badge { background-color: #e74c3c; }
+        .ngo-badge { background-color: #2ecc71; }
+        .admin-badge { background-color: #3498db; }
     </style>
 </head>
 <body>
@@ -53,6 +64,13 @@
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
                             <i class="fas fa-user"></i> {{ user.username }}
+                            {% if user.user_type == 'refugee' %}
+                                <span class="user-type-badge refugee-badge">Refugee</span>
+                            {% elif user.user_type == 'ngo' %}
+                                <span class="user-type-badge ngo-badge">NGO</span>
+                            {% else %}
+                                <span class="user-type-badge admin-badge">Admin</span>
+                            {% endif %}
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li><a class="dropdown-item" href="{% url 'logout' %}">Logout</a></li>
@@ -79,19 +97,51 @@
                     <a href="{% url 'dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
                         <i class="fas fa-tachometer-alt"></i> Dashboard
                     </a>
-                    <a href="{% url 'refugee_list' %}" class="nav-link {% if 'refugee' in request.path %}active{% endif %}">
-                        <i class="fas fa-users"></i> Refugees
-                    </a>
-                    <a href="{% url 'housing_list' %}" class="nav-link {% if 'housing' in request.path %}active{% endif %}">
-                        <i class="fas fa-home"></i> Housing
-                    </a>
-                    <a href="{% url 'job_list' %}" class="nav-link {% if 'job' in request.path %}active{% endif %}">
-                        <i class="fas fa-briefcase"></i> Jobs
-                    </a>
-                    {% if user.user_type == 'admin' %}
-                    <a href="/admin/" class="nav-link">
-                        <i class="fas fa-cog"></i> Admin
-                    </a>
+
+                    {% if user.user_type == 'refugee' %}
+                        <!-- Refugee Navigation -->
+                        <a href="{% url 'housing_list' %}" class="nav-link {% if 'housing' in request.path %}active{% endif %}">
+                            <i class="fas fa-home"></i> Available Housing
+                        </a>
+                        <a href="{% url 'job_list' %}" class="nav-link {% if 'job' in request.path %}active{% endif %}">
+                            <i class="fas fa-briefcase"></i> Available Jobs
+                        </a>
+                        <a href="{% url 'housing_application_list' %}" class="nav-link {% if 'housing_application' in request.path %}active{% endif %}">
+                            <i class="fas fa-file-alt"></i> My Housing Applications
+                        </a>
+                        <a href="{% url 'job_application_list' %}" class="nav-link {% if 'job_application' in request.path %}active{% endif %}">
+                            <i class="fas fa-file-alt"></i> My Job Applications
+                        </a>
+
+                    {% elif user.user_type == 'ngo' %}
+                        <!-- NGO Navigation -->
+                        <a href="{% url 'housing_list' %}" class="nav-link {% if 'housing' in request.path %}active{% endif %}">
+                            <i class="fas fa-home"></i> My Housing Listings
+                        </a>
+                        <a href="{% url 'job_list' %}" class="nav-link {% if 'job' in request.path %}active{% endif %}">
+                            <i class="fas fa-briefcase"></i> My Job Listings
+                        </a>
+                        <a href="{% url 'housing_application_list' %}" class="nav-link {% if 'housing_application' in request.path %}active{% endif %}">
+                            <i class="fas fa-file-alt"></i> Housing Applications
+                        </a>
+                        <a href="{% url 'job_application_list' %}" class="nav-link {% if 'job_application' in request.path %}active{% endif %}">
+                            <i class="fas fa-file-alt"></i> Job Applications
+                        </a>
+
+                    {% else %}
+                        <!-- Admin Navigation -->
+                        <a href="{% url 'refugee_list' %}" class="nav-link {% if 'refugee' in request.path %}active{% endif %}">
+                            <i class="fas fa-users"></i> Refugees
+                        </a>
+                        <a href="{% url 'housing_list' %}" class="nav-link {% if 'housing' in request.path %}active{% endif %}">
+                            <i class="fas fa-home"></i> Housing
+                        </a>
+                        <a href="{% url 'job_list' %}" class="nav-link {% if 'job' in request.path %}active{% endif %}">
+                            <i class="fas fa-briefcase"></i> Jobs
+                        </a>
+                        <a href="/admin/" class="nav-link">
+                            <i class="fas fa-cog"></i> Admin Panel
+                        </a>
                     {% endif %}
                 </div>
             </div>
@@ -118,8 +168,6 @@
 
     <!-- Bootstrap 5 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

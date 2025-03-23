@@ -27,7 +27,7 @@ class Refugee(models.Model):
         ('rejected', 'Rejected'),
     ]
 
-    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='refugee')
     date_of_birth = models.DateField(null=True)
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
     family_size = models.IntegerField(validators=[MinValueValidator(1)])
@@ -72,6 +72,7 @@ class Housing(models.Model):
     cost_per_month = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     last_updated = models.DateTimeField(auto_now=True)
+    ngo = models.ForeignKey('NGO', on_delete=models.CASCADE, related_name='housing_listings', null=True)
 
     def __str__(self):
         return f"{self.name} ({self.get_housing_type_display()})"
@@ -116,6 +117,7 @@ class Job(models.Model):
     posted_at = models.DateTimeField(auto_now_add=True)
     deadline = models.DateTimeField()
     is_active = models.BooleanField(default=True)
+    ngo = models.ForeignKey('NGO', on_delete=models.CASCADE, related_name='job_listings', null=True)
 
     def __str__(self):
         return f"{self.title} at {self.employer}"
@@ -150,3 +152,21 @@ class JobApplication(models.Model):
 
     class Meta:
         unique_together = ('refugee', 'job')
+
+class NGO(models.Model):
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='ngo')
+    organization_name = models.CharField(max_length=200)
+    registration_number = models.CharField(max_length=50, unique=True)
+    description = models.TextField()
+    website = models.URLField(blank=True)
+    contact_email = models.EmailField()
+    contact_phone = models.CharField(max_length=20)
+    address = models.TextField()
+    areas_of_focus = models.TextField(help_text="List the main areas your NGO focuses on")
+    established_date = models.DateField()
+    is_verified = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_updated = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.organization_name
