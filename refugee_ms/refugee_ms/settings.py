@@ -16,6 +16,25 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+
+# Static files (CSS, JavaScript, Images)
+STATIC_URL = '/static/'
+
+# Additional locations of static files
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
+
+# Static files (CSS, JavaScript, Images) served from a single location
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+ALLOWED_HOSTS = ["*"]
+
+# Vercel compatibility
+if "VERCEL" in os.environ:
+    DEBUG = False
+
+
+
 # Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
